@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: sender
+  name: sender
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: sender
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: sender
+    spec:
+      containers:
+        - image: docker.io/aliok/kafka-ch-reload-tests-sender
+          name: sender
+          ports:
+            - containerPort: 8080
+          resources: {}
+---
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
+metadata:
+  name: sender
+spec:
+  subject:
+    apiVersion: apps/v1
+    kind: Deployment
+    selector:
+      matchLabels:
+        run: sender
+  sink:
+    ref:
+      apiVersion: messaging.knative.dev/v1beta1
+      kind: KafkaChannel
+      name: kafka-channel
