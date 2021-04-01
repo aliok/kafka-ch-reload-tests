@@ -1,4 +1,7 @@
-const { CloudEvent, HTTPEmitter } = require("cloudevents-sdk");
+const {CloudEvent, HTTPEmitter} = require("cloudevents-sdk");
+
+const SEND_DURATION = 2 * 60 * 1000;	// N mins
+const SEND_FREQUENCY = 10;	// N ms
 
 let sinkUrl = process.env['K_SINK'];
 
@@ -8,9 +11,12 @@ let emitter = new HTTPEmitter({
 	url: sinkUrl
 });
 
+let startTime = new Date().getTime();
+
 let eventIndex = 0;
-setInterval(function () {
-	console.log("Emitting event #" + ++eventIndex);
+let internal = setInterval(function () {
+	let currentTime = new Date().getTime();
+	console.log("Emitting event #" + ++eventIndex + ". Remaining time (in seconds): " + ((startTime + SEND_DURATION - currentTime)/1000));
 
 	let myevent = new CloudEvent({
 		source: "urn:event:from:my-api/resource/123",
@@ -24,15 +30,25 @@ setInterval(function () {
 	emitter.send(myevent)
 		.then(response => {
 			// Treat the response
-			console.log("Event posted successfully");
-			console.log(response.data);
+			console.log("Event #" + eventIndex + " posted successfully");
 		})
 		.catch(err => {
 			// Deal with errors
 			console.log("Error during event post");
 			console.error(err);
 		});
-}, 1000);
+
+	if (startTime + SEND_DURATION <= currentTime) {
+		clearInterval(internal);
+		console.log("Stopped sending messages.");
+		console.log("In " + (SEND_DURATION / 1000) + " seconds, sent " + eventIndex + "messages");
+		console.log("Starting to sleep now");
+		setInterval(function () {
+			// sleep forever until killed
+		}, 1000);
+	}
+
+}, SEND_FREQUENCY);
 
 registerGracefulExit();
 

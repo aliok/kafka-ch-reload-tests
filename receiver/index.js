@@ -1,11 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-let latency = process.env['LATENCY'];
-if (!latency) {
-	console.log("LATENCY env var is not defined or it is 0, going to response the requests immediately");
-	latency = 0;
-}
+const RECEIVE_DURATION = 3 * 60 * 1000; // N mins
 
 const app = express();
 
@@ -15,23 +11,21 @@ app.use(bodyParser.raw({
 	}
 }));
 
+let receivedMessageCount = 0;
+let startTime = new Date().getTime();
+
 app.all('*', function (req, res) {
-	console.log("=======================");
-	console.log("Request headers:");
-	console.log(req.headers)
-	console.log("\nRequest body - raw:");
-	console.log(req.body)
-	console.log("\nRequest body - to string:");
-	console.log(String(req.body))
-	console.log("=======================\n");
+	console.log("Received message: " + String(req.body));
+	receivedMessageCount++;
 
-	console.log("SLEEP " + latency + " ms");
-
-	setTimeout(function () {
-		res.status(202).send('');
-	}, latency);
+	res.status(202).send('');
 });
 
+setTimeout(function () {
+	// keep the server running. timing of sender should be adjusted properly
+	// app.disable()
+	console.log("Total received message count: " + receivedMessageCount);
+}, RECEIVE_DURATION);
 
 app.listen(8080, () => {
 	console.log('https://github.com/aliok/request-logger');
