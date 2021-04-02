@@ -45,10 +45,13 @@ let internal = setInterval(function () {
 	if (startTime + SEND_DURATION <= currentTime) {
 		clearInterval(internal);
 		console.log("Stopped sending messages.");
-		console.log("In " + (SEND_DURATION / 1000) + " seconds, tried to send " + eventIndex + "messages");
-		console.log("Success:" + success);
-		console.log("Errors:" + error);
-		console.log("Starting to sleep now");
+		console.log("Sleeping for 20 seconds to finalize message sending.");
+		setTimeout(function(){
+			console.log("In " + (SEND_DURATION / 1000) + " seconds, tried to send " + eventIndex + "messages");
+			console.log("Success:" + success);
+			console.log("Errors:" + error);
+			console.log("Starting to sleep now");
+		});
 		setInterval(function () {
 			// sleep forever until killed
 		}, 1000);
