@@ -14,9 +14,11 @@ let emitter = new HTTPEmitter({
 let startTime = new Date().getTime();
 
 let eventIndex = 0;
+let success = 0;
+let error = 0;
 let internal = setInterval(function () {
 	let currentTime = new Date().getTime();
-	console.log("Emitting event #" + ++eventIndex + ". Remaining time (in seconds): " + ((startTime + SEND_DURATION - currentTime)/1000));
+	console.log("Emitting event #" + ++eventIndex + ". Remaining time (in seconds): " + ((startTime + SEND_DURATION - currentTime) / 1000));
 
 	let myevent = new CloudEvent({
 		source: "urn:event:from:my-api/resource/123",
@@ -31,17 +33,21 @@ let internal = setInterval(function () {
 		.then(response => {
 			// Treat the response
 			console.log("Event #" + eventIndex + " posted successfully");
+			success++;
 		})
 		.catch(err => {
 			// Deal with errors
 			console.log("Error during event post");
 			console.error(err);
+			error++;
 		});
 
 	if (startTime + SEND_DURATION <= currentTime) {
 		clearInterval(internal);
 		console.log("Stopped sending messages.");
-		console.log("In " + (SEND_DURATION / 1000) + " seconds, sent " + eventIndex + "messages");
+		console.log("In " + (SEND_DURATION / 1000) + " seconds, tried to send " + eventIndex + "messages");
+		console.log("Success:" + success);
+		console.log("Errors:" + error);
 		console.log("Starting to sleep now");
 		setInterval(function () {
 			// sleep forever until killed
