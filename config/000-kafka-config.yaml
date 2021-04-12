@@ -1,12 +1,19 @@
+# Copyright 2020 The Knative Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: config-kafka
-  namespace: knative-eventing
 data:
-  # Broker URL. Replace this with the URLs for your kafka cluster,
-  # which is in the format of my-cluster-kafka-bootstrap.my-kafka-namespace:9092.
-  bootstrapServers: my-cluster-kafka-bootstrap.kafka:9092
   sarama: |
     Version: 2.0.0 # Kafka Version Compatibility From Sarama's Supported List (Major.Minor.Patch)
     Admin:
@@ -29,4 +36,24 @@ data:
     Producer:
       Idempotent: true  # Must be false for Azure EventHubs
       RequiredAcks: -1  # -1 = WaitForAll, Most stringent option for "at-least-once" delivery.
-
+  eventing-kafka: |
+    receiver:
+      cpuRequest: 100m
+      memoryRequest: 50Mi
+      replicas: 1
+    dispatcher:
+      cpuRequest: 100m
+      memoryRequest: 50Mi
+      replicas: 1
+    kafka:
+      brokers: my-cluster-kafka-bootstrap.kafka:9092
+      enableSaramaLogging: false
+      topic:
+        defaultNumPartitions: 4
+        defaultReplicationFactor: 1 # Cannot exceed the number of Kafka Brokers!
+        defaultRetentionMillis: 604800000  # 1 week
+      adminType: kafka # One of "kafka", "azure", "custom"
+kind: ConfigMap
+metadata:
+  name: config-kafka
+  namespace: knative-eventing
